@@ -1,4 +1,4 @@
-/*! elementQuery | Author: Tyson Matanich (http://matanich.com), 2013 | License: MIT */
+﻿/*! elementQuery | Author: Tyson Matanich (http://matanich.com), 2013 | License: MIT */
 (function (window, document, undefined) {
     // Enable strict mode
     "use strict";
@@ -10,14 +10,6 @@
     //sizzle.selectors.cacheLength = 50;
 
     var queryData = {};
-
-    var cssRules = null;
-
-    var setCssRules = function () {
-        if (document.styleSheets[0]) {
-            cssRules = (document.styleSheets[0].cssRules !== undefined) ? "cssRules" : "rules";
-        }
-    }
 
     var addQueryDataValue = function (selector, type, pair, number, value) {
 
@@ -74,106 +66,6 @@
         }
     };
 
-    var processSelector = function (selectorText) {
-
-        if (selectorText) {
-
-            var regex = /(\[(min\-width|max\-width|min\-height|max\-height)\~\=(\'|\")([0-9]*.?[0-9]+)(px|em)(\'|\")\])(\[(min\-width|max\-width|min\-height|max\-height)\~\=(\'|\")([0-9]*.?[0-9]+)(px|em)(\'|\")\])?/gi;
-
-            // Split out the full selectors separated by a comma ','
-            var selectors = selectorText.split(",");
-            var i, selector, result, number, prevIndex, k, tail, t;
-            for (i = 0; i < selectors.length; i++) {
-
-                selector = null;
-                prevIndex = 0;
-                k = 0;
-                while (k == 0 || result != null) {
-                    result = regex.exec(selectors[i]);
-                    if (result != null) {
-
-                        // result[2] = min-width|max-width|min-height|max-height
-                        // result[4] = number
-                        // result[5] = px|em
-                        // result[7] = has another
-
-                        // Ensure that it contains a valid numeric value to compare against
-                        number = Number(result[4]);
-                        if (number + "" != "NaN") {
-
-                            if (selector == null) {
-                                // New set: update the current selector
-                                selector = selectors[i].substring(prevIndex, result.index);
-
-                                // Append second half of the selector
-                                tail = selectors[i].substring(result.index + result[1].length);
-                                if (tail.length > 0) {
-                                    
-                                    t = tail.indexOf(" ");
-                                    if (t != 0) {
-                                        if (t > 0) {
-                                            // Take only the current part
-                                            tail = tail.substring(0, t);
-                                        }
-
-                                        // Remove any sibling element queries
-                                        tail = tail.replace(/(\[(min\-width|max\-width|min\-height|max\-height)\~\=(\'|\")([0-9]*.?[0-9]+)(px|em)(\'|\")\])/gi, "");
-                                        selector += tail;
-                                    }
-                                }
-                            }
-
-                            // Update the queryData object
-                            addQueryDataValue(selector, result[2], result[4] + result[5], number, result[5]);
-                        }
-
-                        if (result[7] === undefined || result[7] == "") {
-                            // Reached the end of the set
-                            prevIndex = result.index + result[1].length;
-                            selector = null;
-                        }
-                        else {
-                            // Update result index to process next item in the set
-                            regex.lastIndex = result.index + result[1].length;
-                        }
-                    }
-                    k++;
-                }
-            }
-        }
-    };
-
-    var processStyleSheet = function (styleSheet, force) {
-        
-        if (cssRules == null) {
-            setCssRules();
-        }
-        if (styleSheet[cssRules] && styleSheet[cssRules].length > 0) {
-
-            var ownerNode = styleSheet.ownerNode || styleSheet.owningElement;
-            if (force || (ownerNode.getAttribute("data-elementquery-bypass") === null && ownerNode.getAttribute("data-elementquery-processed") === null)) {
-
-                var i, j, rule;
-
-                for (i = 0; i < styleSheet[cssRules].length; i++) {
-                    rule = styleSheet[cssRules][i];
-
-                    // Check nested rules in media queries etc
-                    if (rule[cssRules] && rule[cssRules].length > 0) {
-                        for (j = 0; j < rule[cssRules].length; j++) {
-                            processSelector(rule[cssRules][j].selectorText);
-                        }
-                    }
-                    else {
-                        processSelector(rule.selectorText);
-                    }
-                }
-
-                // Flag the style sheet as processed
-                ownerNode.setAttribute("data-elementquery-processed", "");
-            }
-        }
-    };
 
     // Refactor from jQuery.trim()
     var trim = function (text) {
@@ -235,17 +127,6 @@
         }
     };
 
-    var init = function () {
-
-        // Process the style sheets
-        var i;
-        for (i = 0; i < document.styleSheets.length; i++) {
-            processStyleSheet(document.styleSheets[i]);
-        }
-
-        refresh();
-    }
-
     var refresh = function () {
 
         var i, ei, j, k, elements, element, val;
@@ -306,60 +187,26 @@
     // Expose some public functions
     window.elementQuery = function (arg1, arg2) {
 
-        if (arg1 && typeof arg1 == "object") {
-            if (arg1.cssRules || arg1.rules) {
-                // Process a new style sheet
-                processStyleSheet(arg1, true);
-
-                if (arg2 == true) {
-                    refresh();
-                }
-            } else {
-                // Add new selector queries
-                updateQueryData(arg1, arg2);
-            }
+        if (arg1 && typeof arg1 == "object" && !(arg1.cssRules || arg1.rules)) {
+            // Add new selector queries
+            updateQueryData(arg1, arg2);
         }
         else if (!arg1 && !arg2) {
             refresh();
         }
     };
 
-    //NOTE: For development purposes only!
-    window.elementQuery.selectors = function () {
-
-        var data = {};
-        var i, j, k;
-
-        // For each selector
-        for (i in queryData) {
-
-            // For each min|max-width|height string
-            for (j in queryData[i]) {
-
-                // For each number px|em value pair
-                for (k in queryData[i][j]) {
-
-                    if (data[i] === undefined) {
-                        data[i] = {};
-                    }
-                    if (data[i][j] === undefined) {
-                        data[i][j] = [];
-                    }
-                    data[i][j][data[i][j].length] = k;
-                }
-            }
-        }
-        return data;
-    };
+    //NOTE: For development purposes only! Added stub to prevent errors.
+    window.elementQuery.selectors = function () { };
 
     if (window.addEventListener) {
         window.addEventListener("resize", refresh, false);
-        window.addEventListener("DOMContentLoaded", init, false);
-        window.addEventListener("load", init, false);
+        window.addEventListener("DOMContentLoaded", refresh, false);
+        window.addEventListener("load", refresh, false);
     }
     else if (window.attachEvent) {
         window.attachEvent("onresize", refresh);
-        window.attachEvent("onload", init);
+        window.attachEvent("onload", refresh);
     }
 }(this, document, undefined));
 
