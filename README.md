@@ -1,6 +1,6 @@
 ﻿# ElementQuery
 
-A element query polyfill you can use today.
+An element query polyfill you can use today.
 
 * Author: Tyson Matanich - http://matanich.com
 * License: MIT
