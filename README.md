@@ -68,7 +68,7 @@ elementQuery({"header":{"min-width":["500px","31.250em"],"max-width":["800px"]}}
 
 Currently, the **master branch** of `elementQuery.js` compresses to around 2367 bytes (~2.3 KB) and the **prod branch** of `elementQuery.js` compresses to around 1788 bytes (~1.7 KB), after minify and gzip.
 
-To minify, you might try these online tools: [Microsoft Ajax Minifier]:(http://ajaxmin.codeplex.com/), [Uglify]:(http://marijnhaverbeke.nl/uglifyjs), [Yahoo Compressor]:(http://refresh-sf.com/yui/), or [Closure Compiler](http://closure-compiler.appspot.com/home). Serve with gzip compression.
+To minify, you might try these online tools: [Microsoft Ajax Minifier](http://ajaxmin.codeplex.com/), [Uglify](http://marijnhaverbeke.nl/uglifyjs), [Yahoo Compressor](http://refresh-sf.com/yui/), or [Closure Compiler](http://closure-compiler.appspot.com/home). Serve with gzip compression.
 
 ## Support
 
